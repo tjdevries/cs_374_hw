@@ -45,16 +45,15 @@ int main(int argc, char* argv[])
                iy,
                button,
                id = 0,
-	           numProc,
-	           chunk = 0;
+	       numProc,
+	       chunk = 0;
     double     spacing=.005,
                x,
                y,
                c_real,
                c_imag,
                x_center = 1.0,
-               y_center = 0.0,
-               *array[WINDOW_SIZE][WINDOW_SIZE];
+               y_center = 0.0;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &numProc);
@@ -81,22 +80,22 @@ int main(int argc, char* argv[])
          while (n < 50 && distance(x,y) < 6.0)
          {
             compute(x,y,c_real,c_imag,&x,&y);
-            n++;}
+            n++;
+         }
 
          if(n<50){
-            chunkarray[ix][iy] = 0;}
+            // 0 for red
+            chunkarray[ix][iy] = 0;
+         }
          else{ 
-             chunkarray[ix][iy] = 1;}
-
-         //MPI_Gather(&x, chunk, MPI_DOUBLE, &array[ix][iy], chunk, MPI_DOUBLE, 0, MPI_COMM_WORLD);  
-        
-        /*if (n < 50)
-          MPE_Draw_point(graph,ix,iy,MPE_RED);
-        else
-          MPE_Draw_point(graph,ix,iy,MPE_BLACK);*/
+             // 1 for black
+             chunkarray[ix][iy] = 1;
+         }
        }
     }
+    // Put all the values from the chunk array into our final array, that will be used for graphing
     MPI_Gather(chunkarray, chunk, MPI_DOUBLE, array[ix][iy], chunk, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    
     // pause until mouse-click so the program doesn't terminate
     if (id == 0) {
     	// Initialize the graph. Only done on the main id process
@@ -104,18 +103,18 @@ int main(int argc, char* argv[])
     	MPE_Open_graphics( &graph, MPI_COMM_WORLD, getDisplay(), -1, -1, WINDOW_SIZE, WINDOW_SIZE, 0);
     	
     	// Begin to print out the graph
-        for(ix = 0; ix < WINDOW_SIZE; ix++){
-            for(iy = 0; iy<WINDOW_SIZE;iy++){
+        for(ix = 0; ix < WINDOW_SIZE; ix++) {
+            for(iy = 0; iy < WINDOW_SIZE; iy++) {
                  if(array[ix][iy] == 0){
-                    MPE_Draw_point(graph,ix,iy,MPE_RED);
+                    MPE_Draw_point(graph, ix, iy, MPE_RED);
                  }
                  else{
-                    MPE_Draw_point(graph,ix,iy,MPE_BLACK);
+                    MPE_Draw_point(graph, ix, iy, MPE_BLACK);
                  }
             }
         }
         printf("\nClick in the window to continue...\n");
-        MPE_Get_mouse_press( graph, &ix, &iy, &button );
+        MPE_Get_mouse_press(graph, &ix, &iy, &button );
     }
 
     MPE_Close_graphics( &graph );
