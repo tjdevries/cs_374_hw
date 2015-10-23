@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
             -1, -1,
             WINDOW_SIZE, WINDOW_SIZE, 0 );
     double chunkarray[chunk][WINDOW_SIZE];
-    for (ix = (id-1)*chunk; ix < (id)*chunk && id != 0; ix++)
+    for (ix = (id)*chunk; ix < (id+1)*chunk; ix++)
     {
        for (iy = 0; iy <  WINDOW_SIZE; iy++)
        {
