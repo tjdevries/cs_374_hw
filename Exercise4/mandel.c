@@ -37,7 +37,7 @@ double distance(double x, double y)
 
 
 int main(int argc, char* argv[])
-{
+{  printf("here");
     const int  WINDOW_SIZE = 1024;
 
     int        n,
@@ -53,9 +53,10 @@ int main(int argc, char* argv[])
                c_real,
                c_imag,
                x_center = 1.0,
-               y_center = 0.0;
-    double array[WINDOW_SIZE][WINDOW_SIZE];
+               y_center = 0.0,
+               *array[WINDOW_SIZE][WINDOW_SIZE];
     MPE_XGraph graph;
+    MPE_Open_graphics( &graph, MPI_COMM_WORLD, getDisplay(), -1, -1, WINDOW_SIZE, WINDOW_SIZE, 0);
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &numProc);
     MPI_Comm_rank(MPI_COMM_WORLD, &id);
@@ -68,13 +69,10 @@ int main(int argc, char* argv[])
        printf("\nSpacing=%lf, center=(%lf,%lf)\n",
        spacing, x_center, y_center);
        */
-    MPE_Open_graphics( &graph, MPI_COMM_WORLD, 
-            getDisplay(),
-            -1, -1,
-            WINDOW_SIZE, WINDOW_SIZE, 0 );
+    printf("here2");
     double chunkarray[chunk][WINDOW_SIZE];
     for (ix = (id)*chunk; ix < (id+1)*chunk; ix++)
-    {
+    {printf("here3");
        for (iy = 0; iy <  WINDOW_SIZE; iy++)
        {
          c_real=(ix - 400) * spacing - x_center;
@@ -99,7 +97,7 @@ int main(int argc, char* argv[])
           MPE_Draw_point(graph,ix,iy,MPE_BLACK);*/
        }
     }
-    MPI_Gather(&chunkarray, chunk, MPI_DOUBLE, &array[ix][iy], chunk, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Gather(chunkarray, chunk, MPI_DOUBLE, array[ix][iy], chunk, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     // pause until mouse-click so the program doesn't terminate
     if (id == 0) {
         for(ix = 0; ix < WINDOW_SIZE; ix++){
