@@ -55,8 +55,7 @@ int main(int argc, char* argv[])
                x_center = 1.0,
                y_center = 0.0,
                *array[WINDOW_SIZE][WINDOW_SIZE];
-    MPE_XGraph graph;
-    MPE_Open_graphics( &graph, MPI_COMM_WORLD, getDisplay(), -1, -1, WINDOW_SIZE, WINDOW_SIZE, 0);
+
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &numProc);
     MPI_Comm_rank(MPI_COMM_WORLD, &id);
@@ -100,12 +99,19 @@ int main(int argc, char* argv[])
     MPI_Gather(chunkarray, chunk, MPI_DOUBLE, array[ix][iy], chunk, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     // pause until mouse-click so the program doesn't terminate
     if (id == 0) {
+    	// Initialize the graph. Only done on the main id process
+    	MPE_XGraph graph;
+    	MPE_Open_graphics( &graph, MPI_COMM_WORLD, getDisplay(), -1, -1, WINDOW_SIZE, WINDOW_SIZE, 0);
+    	
+    	// Begin to print out the graph
         for(ix = 0; ix < WINDOW_SIZE; ix++){
             for(iy = 0; iy<WINDOW_SIZE;iy++){
                  if(array[ix][iy] == 0){
-                    MPE_Draw_point(graph,ix,iy,MPE_RED);}
+                    MPE_Draw_point(graph,ix,iy,MPE_RED);
+                 }
                  else{
-                    MPE_Draw_point(graph,ix,iy,MPE_BLACK);}
+                    MPE_Draw_point(graph,ix,iy,MPE_BLACK);
+                 }
             }
         }
         printf("\nClick in the window to continue...\n");
