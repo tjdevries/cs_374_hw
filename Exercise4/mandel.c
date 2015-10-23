@@ -37,7 +37,7 @@ double distance(double x, double y)
 
 
 int main(int argc, char* argv[])
-{  printf("here");
+{
     const int  WINDOW_SIZE = 1024;
 
     int        n,
@@ -45,8 +45,8 @@ int main(int argc, char* argv[])
                iy,
                button,
                id = 0,
-	       numProc,
-	       chunk = 0;
+	           numProc,
+	           chunk = 0;
     double     spacing=.005,
                x,
                y,
@@ -55,10 +55,12 @@ int main(int argc, char* argv[])
                x_center = 1.0,
                y_center = 0.0;
 
+    // Initialize our MPI items
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &numProc);
     MPI_Comm_rank(MPI_COMM_WORLD, &id);
-    chunk = WINDOW_SIZE / numProc;
+    
+    // Optional input items
     /*
        printf("\nEnter spacing (.005): "); fflush(stdout);
        scanf("%lf",&spacing);
@@ -67,34 +69,67 @@ int main(int argc, char* argv[])
        printf("\nSpacing=%lf, center=(%lf,%lf)\n",
        spacing, x_center, y_center);
        */
-    printf("here2");
+    
+    // Set the size of our chunks.
+    chunk = WINDOW_SIZE / numProc;
+    
+    // Each process creates its own local chunkarray
     double chunkarray[chunk][WINDOW_SIZE];
-    for (ix = (id)*chunk; ix < (id+1)*chunk; ix++)
-    {printf("here3");
-       for (iy = 0; iy <  WINDOW_SIZE; iy++)
-       {
-         c_real=(ix - 400) * spacing - x_center;
-         c_imag=(iy - 400) * spacing - y_center;
-         x = y = 0.0;
-         n = 0;
-         while (n < 50 && distance(x,y) < 6.0)
-         {
+    
+    // Loop through and calculate the MPI items
+    int start = id * chunk;
+    
+    // Make sure that we get all the values, instead of missing one in case of 
+    //  none perfect division.
+    if (id != numProc - 1) {
+        end = (id + 1) * chunk;
+    }
+    else {
+        end = WINDOW_SIZE;
+    }
+    
+    for (ix = start; ix < end; ix++)
+    {
+        for (iy = 0; iy <  WINDOW_SIZE; iy++)
+        {
+        c_real = (ix - 400) * spacing - x_center;
+        c_imag = (iy - 400) * spacing - y_center;
+        x = y = 0.0;
+        n = 0;
+        while (n < 50 && distance(x,y) < 6.0)
+        {
             compute(x,y,c_real,c_imag,&x,&y);
             n++;
-         }
+        }
 
-         if(n<50){
+        if(n<50){
             // 0 for red
-            chunkarray[ix][iy] = 0;
-         }
-         else{ 
-             // 1 for black
-             chunkarray[ix][iy] = 1;
-         }
+            //  Because these are the local arrays, they should be 0 relative.
+            //  When we gather them, they will be appended to each other.
+            //  So that is why we have ix - start.
+            chunkarray[ix - start][iy] = 0;
+        }
+        else{ 
+            // 1 for black
+            chunkarray[ix - start][iy] = 1;
+            }
        }
     }
     // Put all the values from the chunk array into our final array, that will be used for graphing
-    MPI_Gather(chunkarray, chunk, MPI_DOUBLE, array[ix][iy], chunk, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    
+    double * array = NULL;
+    if (id == 0) {
+        // Make sure we have enough space for our global data.
+        globaldata = malloc(WINDOW_SIZE * WINDOW_SIZE * sizeof(double));
+    }
+    
+    int send_count = chunk * WINDOW_SIZE * sizeof(double);
+    int recv_count = chunk * WINDOW_SIZE * sizeof(double);
+    
+    // MPI_Gather(const void *sendbuf, int sendcount, MPI_Datatype sendtype, \
+    	void *recvbuf, int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm)
+    // Not sure if this will work with the chunk size every time because of the way we set chunks for the last option.
+    MPI_Gather(chunkarray, send_count, MPI_DOUBLE, array, recv_count, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     
     // pause until mouse-click so the program doesn't terminate
     if (id == 0) {
