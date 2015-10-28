@@ -1,5 +1,5 @@
 /* Compute/draw mandelbrot set using MPI/MPE commands
- * Written Winter, 1998, W. David Laverell.
+
  * Simplified Winter 2002, Joel Adams. 
  */
 #include <stdlib.h>
@@ -18,8 +18,8 @@
  * POST: ans_x and ans_y contain the results of the mandelbrot-set
  *        function for x, y, and c.
  */
-void compute(double x, double y, double c_real, double c_imag,
-        double *ans_x, double *ans_y)
+void compute(short x, short y, short c_real, short c_imag,
+        short *ans_x, short *ans_y)
 {
         *ans_x = x*x - y*y + c_real;
         *ans_y = 2*x*y + c_imag;
@@ -29,7 +29,7 @@ void compute(double x, double y, double c_real, double c_imag,
  * Receive: doubles x and y.
  * Return: x^2 + y^2.
  */
-double distance(double x, double y)
+short distance(short x, short y)
 {
         return(x*x + y*y);
 }
@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
                id = 0,
 	           numProc,
 	           chunk = 0;
-    double     spacing=.005,
+    short      spacing=.005,
                x,
                y,
                c_real,
@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
     chunk = WINDOW_SIZE / numProc;
     printf("before here\n"); 
     // Each process creates its own local chunkarray
-    short chunkarray[chunk][WINDOW_SIZE];
+    short chunkarray[(chunk * WINDOW_SIZE)+1024];
     int end;    
     // Loop through and calculate the MPI items
     int start = id * chunk;
@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
         end = (id + 1) * chunk;
     }
     else {
-        end = WINDOW_SIZE;
+        end = (id+1) * chunk; //WINDOW_SIZE; //to see if this is causing the seg fault
     }
     printf("here\n"); 
     for (ix = start; ix < end; ix++)
@@ -94,65 +94,57 @@ int main(int argc, char* argv[])
         c_imag = (iy - 400) * spacing - y_center;
         x = y = 0.0;
         n = 0;
-        while (n < 50 && distance(x,y) < 6.0)
+        while (n < 50 && distance(x,y) < 4.0)
         {
-            if(distance(x,y) < 6.0){
-                compute(x,y,c_real,c_imag,&x,&y);
-                n++;}
+             compute(x,y,c_real,c_imag,&x,&y);
+             n++;
+        }
             if(n<50){
             // 0 for red
             //  Because these are the local arrays, they should be 0 relative.
             //  When we gather them, they will be appended to each other.
             //  So that is why we have ix - start.
-                chunkarray[ix - start][iy] = 0;
+               chunkarray[((ix-start)*(1024/numProc))+iy] = 0;
             }
              else{ 
             // 1 for black
-                chunkarray[ix - start][iy] = 1;
+                chunkarray[((ix-start)*(1024/numProc))+iy] = 1;
             }
-        }
+    
        }
     }
     // Put all the values from the chunk array into our final array, that will be used for graphing
     
-    short ** array = NULL;
-    /*if (id == 0) {
-        // Make sure we have enough space for our global data.
-        int * globaldata;
-        globaldata = malloc(WINDOW_SIZE * WINDOW_SIZE * sizeof(double));
-    }*/
-    
-    int send_count = chunk * WINDOW_SIZE * sizeof(short);
-    int recv_count = chunk * WINDOW_SIZE * sizeof(short);
+    short array[(WINDOW_SIZE * WINDOW_SIZE) + 1024];
     printf("hello\n");
     // MPI_Gather(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
     //  void *recvbuf, int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm)
     // Not sure if this will work with the chunk size every time because of the way we set chunks for the last option.
-    MPI_Gather(&chunkarray, 1, MPI_SHORT, &array, 1, MPI_SHORT, 0, MPI_COMM_WORLD);
-    printf("almost end ish\n");
-    free(chunkarray);    
+    MPI_Gather(&chunkarray, chunk*WINDOW_SIZE+(1024/numProc), MPI_SHORT, &array, chunk*WINDOW_SIZE+(1024/numProc), MPI_SHORT, 0, MPI_COMM_WORLD);
+    printf("almost end ish\n");;    
     // pause until mouse-click so the program doesn't terminate
     if (id == 0) {
     	// Initialize the graph. Only done on the main id process
-    	MPE_XGraph graph;
-    	MPE_Open_graphics( &graph, MPI_COMM_WORLD, getDisplay(), -1, -1, WINDOW_SIZE, WINDOW_SIZE, 0);
-    printf("end ish\n");	
+    	//MPE_XGraph graph;
+    	//MPE_Open_graphics( &graph, MPI_COMM_WORLD, getDisplay(), -1, -1, WINDOW_SIZE, WINDOW_SIZE, 0);
+        printf("end ish\n");	
     	// Begin to print out the graph
         for(ix = 0; ix < WINDOW_SIZE; ix++) {
+            printf("\n\n");
             for(iy = 0; iy < WINDOW_SIZE; iy++) {
-                 if(array[ix][iy] == 0){
-                    MPE_Draw_point(graph, ix, iy, MPE_RED);
+                printf("%i",array[(ix*1024)+iy]);
+                 if(array[ix*iy] == 0){
+                    //MPE_Draw_point(graph, ix, iy, MPE_RED);
                  }
                  else{
-                    MPE_Draw_point(graph, ix, iy, MPE_BLACK);
+                    //MPE_Draw_point(graph, ix, iy, MPE_BLACK);
                  }
             }
         }
         printf("\nClick in the window to continue...\n");
-        MPE_Get_mouse_press(graph, &ix, &iy, &button );
-        MPE_Close_graphics( &graph );
+        //MPE_Get_mouse_press(graph, &ix, &iy, &button );
+        //MPE_Close_graphics( &graph );
     }
     MPI_Finalize();
-    free(array);
     return 0;
 }
