@@ -1,13 +1,13 @@
 /* Compute/draw mandelbrot set using MPI/MPE commands
 
- * Simplified Winter 2002, Joel Adams. 
+ * Simplified Winter 2002, Joel Adams.
  */
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 #include <sys/time.h>
 #include <mpi/mpi.h>
-#include <mpi/mpe.h>
+// #include <mpi/mpe.h>
 #include "display.h"
 
 /* compute the mandelbrot-set function for a given
@@ -39,6 +39,8 @@ int main(int argc, char* argv[])
 {
     const int  WINDOW_SIZE = 1024;
 
+    int verbose = 1;
+
     int        n,
                ix,
                iy,
@@ -58,7 +60,7 @@ int main(int argc, char* argv[])
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &numProc);
     MPI_Comm_rank(MPI_COMM_WORLD, &id);
-    
+
     // Optional input items
     /*
        printf("\nEnter spacing (.005): "); fflush(stdout);
@@ -68,16 +70,19 @@ int main(int argc, char* argv[])
        printf("\nSpacing=%lf, center=(%lf,%lf)\n",
        spacing, x_center, y_center);
        */
-    
+
     // Set the size of our chunks.
     chunk = WINDOW_SIZE / numProc;
-    printf("before here\n"); 
+
+    if (verbose) { printf("Chunk size set to %d. Total size is %d", chunk, chunk * numProc); }
+
     // Each process creates its own local chunkarray
     short chunkarray[(chunk * WINDOW_SIZE)+1024];
-    int end;    
+    int end;
+
     // Loop through and calculate the MPI items
     int start = id * chunk;
-    // Make sure that we get all the values, instead of missing one in case of 
+    // Make sure that we get all the values, instead of missing one in case of
     //  none perfect division.
     if (id != numProc - 1) {
         end = (id + 1) * chunk;
@@ -85,7 +90,9 @@ int main(int argc, char* argv[])
     else {
         end = (id+1) * chunk; //WINDOW_SIZE; //to see if this is causing the seg fault
     }
-    printf("here\n"); 
+
+    if (verbose) { printf("Process %d has start: %d, end: %d", id, start, end); }
+
     for (ix = start; ix < end; ix++)
     {
         for (iy = 0; iy <  WINDOW_SIZE; iy++)
@@ -99,46 +106,49 @@ int main(int argc, char* argv[])
              compute(x,y,c_real,c_imag,&x,&y);
              n++;
         }
-            if(n<50){
-            // 0 for red
-            //  Because these are the local arrays, they should be 0 relative.
-            //  When we gather them, they will be appended to each other.
-            //  So that is why we have ix - start.
-               chunkarray[((ix-start)*(1024/numProc))+iy] = 0;
-            }
-             else{ 
-            // 1 for black
-                chunkarray[((ix-start)*(1024/numProc))+iy] = 1;
-            }
-    
+        if(n<50){
+        // 0 for red
+        //  Because these are the local arrays, they should be 0 relative.
+        //  When we gather them, they will be appended to each other.
+        //  So that is why we have ix - start.
+           chunkarray[((ix-start)*(1024/numProc))+iy] = 0;
+        }
+        else{
+        // 1 for black
+            chunkarray[((ix-start)*(1024/numProc))+iy] = 1;
+        }
        }
     }
     // Put all the values from the chunk array into our final array, that will be used for graphing
-    
+
     short array[(WINDOW_SIZE * WINDOW_SIZE) + 1024];
-    printf("hello\n");
+
     // MPI_Gather(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
     //  void *recvbuf, int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm)
     // Not sure if this will work with the chunk size every time because of the way we set chunks for the last option.
     MPI_Gather(&chunkarray, chunk*WINDOW_SIZE+(1024/numProc), MPI_SHORT, &array, chunk*WINDOW_SIZE+(1024/numProc), MPI_SHORT, 0, MPI_COMM_WORLD);
-    printf("almost end ish\n");;    
-    // pause until mouse-click so the program doesn't terminate
+
     if (id == 0) {
     	// Initialize the graph. Only done on the main id process
     	//MPE_XGraph graph;
     	//MPE_Open_graphics( &graph, MPI_COMM_WORLD, getDisplay(), -1, -1, WINDOW_SIZE, WINDOW_SIZE, 0);
-        printf("end ish\n");	
-    	// Begin to print out the graph
+
+        // Begin to print out the graph
+        if (verbose) { printf("\n"); } // Print out a newline to separate the array from previous prints
         for(ix = 0; ix < WINDOW_SIZE; ix++) {
-            printf("\n\n");
+            if (verbose) { printf("\n"); } // Print out a new line after each row of the matrix
+
+            // Cycle through the matrix rows.
             for(iy = 0; iy < WINDOW_SIZE; iy++) {
-                printf("%i",array[(ix*1024)+iy]);
-                 if(array[ix*iy] == 0){
+                // Print out an array
+                if (verbose) { printf("%i",array[(ix*1024)+iy]); }
+
+                if(array[ix * iy] == 0){
                     //MPE_Draw_point(graph, ix, iy, MPE_RED);
-                 }
-                 else{
+                }
+                else{
                     //MPE_Draw_point(graph, ix, iy, MPE_BLACK);
-                 }
+                }
             }
         }
         printf("\nClick in the window to continue...\n");
