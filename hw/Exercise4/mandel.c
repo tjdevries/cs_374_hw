@@ -46,8 +46,8 @@ int main(int argc, char* argv[])
                iy,
                button,
                id = 0,
-	           numProc,
-	           chunk = 0;
+               numProc,
+               chunk = 0;
     short      spacing=.005,
                x,
                y,
@@ -97,41 +97,42 @@ int main(int argc, char* argv[])
     {
         for (iy = 0; iy <  WINDOW_SIZE; iy++)
         {
-        c_real = (ix - 400) * spacing - x_center;
-        c_imag = (iy - 400) * spacing - y_center;
-        x = y = 0.0;
-        n = 0;
-        while (n < 50 && distance(x,y) < 4.0)
-        {
-             compute(x,y,c_real,c_imag,&x,&y);
-             n++;
+            c_real = (ix - 400) * spacing - x_center;
+            c_imag = (iy - 400) * spacing - y_center;
+            x = y = 0.0;
+            n = 0;
+            while (n < 50 && distance(x,y) < 4.0)
+            {
+                 compute(x,y,c_real,c_imag,&x,&y);
+                 n++;
+            }
+            if (n < 50) {
+            // 0 for red
+            //  Because these are the local arrays, they should be 0 relative.
+            //  When we gather them, they will be appended to each other.
+            //  So that is why we have ix - start.
+                chunkarray[iy + (ix - start) * WINDOW_SIZE] = 0;
+            }
+            else{
+            // 1 for black
+                chunkarray[iy + (ix - start) * WINDOW_SIZE] = 1;
+            }
         }
-        if(n<50){
-        // 0 for red
-        //  Because these are the local arrays, they should be 0 relative.
-        //  When we gather them, they will be appended to each other.
-        //  So that is why we have ix - start.
-           chunkarray[((ix-start)*(1024/numProc))+iy] = 0;
-        }
-        else{
-        // 1 for black
-            chunkarray[((ix-start)*(1024/numProc))+iy] = 1;
-        }
-       }
     }
     // Put all the values from the chunk array into our final array, that will be used for graphing
 
-    short array[(WINDOW_SIZE * WINDOW_SIZE) + 1024];
+    // Make the array a square of window size by window size
+    short array[WINDOW_SIZE * WINDOW_SIZE];
 
     // MPI_Gather(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
     //  void *recvbuf, int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm)
     // Not sure if this will work with the chunk size every time because of the way we set chunks for the last option.
-    MPI_Gather(&chunkarray, chunk*WINDOW_SIZE+(1024/numProc), MPI_SHORT, &array, chunk*WINDOW_SIZE+(1024/numProc), MPI_SHORT, 0, MPI_COMM_WORLD);
+    MPI_Gather(&chunkarray, chunk*WINDOW_SIZE, MPI_SHORT, &array, chunk*WINDOW_SIZE, MPI_SHORT, 0, MPI_COMM_WORLD);
 
     if (id == 0) {
-    	// Initialize the graph. Only done on the main id process
-    	//MPE_XGraph graph;
-    	//MPE_Open_graphics( &graph, MPI_COMM_WORLD, getDisplay(), -1, -1, WINDOW_SIZE, WINDOW_SIZE, 0);
+        // Initialize the graph. Only done on the main id process
+        //MPE_XGraph graph;
+        //MPE_Open_graphics( &graph, MPI_COMM_WORLD, getDisplay(), -1, -1, WINDOW_SIZE, WINDOW_SIZE, 0);
 
         // Begin to print out the graph
         if (verbose) { printf("\n"); } // Print out a newline to separate the array from previous prints
