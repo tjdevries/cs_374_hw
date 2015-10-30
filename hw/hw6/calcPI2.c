@@ -11,7 +11,7 @@
 #include <stdio.h>                 // printf(), fprintf(), etc.
 #include <stdlib.h>                // strtoul(), exit(), ...
 #include <pthread.h>               // pthreads
-#include <mpi.h>                   // MPI_Wtime()
+#include <mpi/mpi.h>                   // MPI_Wtime()
 
 // global variables (shared by all threads 
 volatile long double pi = 0.0;       // our approximation of PI 
@@ -99,8 +99,8 @@ int main(int argc, char **argv) {
     }
     stopTime = MPI_Wtime();
 
-    printf("Estimation of pi is %32.30Lf in %lf secs\n", pi, stopTime - startTime);
-    printf("(actual pi value is 3.141592653589793238462643383279...)\n");
+    printf("%32.30Lf\t%lf\n", pi, stopTime - startTime);
+    // printf("(actual pi value is 3.141592653589793238462643383279...)\n");
    
     pthread_mutex_destroy(&piLock);
     return 0;
