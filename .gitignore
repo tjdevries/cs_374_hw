@@ -1,6 +1,9 @@
 # Temp files
 *\.swp
 
+# Typescript files
+*typescript*
+
 # Object files
 *.o
 *.ko
