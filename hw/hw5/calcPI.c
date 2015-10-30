@@ -60,18 +60,19 @@ int main(int argc, char** argv) {
     long double start = id * width;
     long double end = (id + 1) * width;
 
-    printf("Process %d has (start, end): (%Lf, %LF)\n", id, start, end);
-    fflush(stdout);
+    //printf("Process %d has (start, end): (%Lf, %LF)\n", id, start, end);
+    //fflush(stdout);
 
-    approximatePI = integrateTrap(id * width, (id + 1) * width, numTrapezoids) * 4.0;
+    approximatePI = integrateTrap(id * width, (id + 1) * width, numTrapezoids/numProc) * 4.0;
 
-    printf("Using %llu trapezoids, the approximate found for process %d are PI are:\n%.30Lf\n",
-           numTrapezoids, id, approximatePI);
+    //printf("Using %llu trapezoids, the approximate found for process %d are PI are:\n%.30Lf\n",
+           // numTrapezoids, id, approximatePI);
 
     MPI_Reduce(&approximatePI, &finalPI, 1, MPI_LONG_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
     if (id == 0) {
-        printf("Final approximation for Pi vs reference:\n%.30Lf\n%.30Lf\n", finalPI, REFERENCE_PI);
+        //printf("Final approximation for Pi vs reference:\n%.30Lf\n%.30Lf\n", finalPI, REFERENCE_PI);
+        printf("%.30Lf\n", (finalPI-REFERENCE_PI)*pow(10,17));
     }
 
     MPI_Finalize();
