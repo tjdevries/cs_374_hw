@@ -12,6 +12,7 @@
 #include <stdlib.h>                // strtoul(), exit(), ...
 #include <pthread.h>               // pthreads
 #include <mpi/mpi.h>                   // MPI_Wtime()
+#include "pthreadReduction.h"
 
 // global variables (shared by all threads 
 volatile long double pi = 0.0;       // our approximation of PI 
@@ -43,9 +44,14 @@ void * computePI(void * arg)
 
     localSum *= width; 
 
-    pthread_mutex_lock(&piLock);
-    pi += localSum;
-    pthread_mutex_unlock(&piLock); 
+    /* Old Code
+     * pthread_mutex_lock(&piLock);
+     * pi += localSum;
+     * pthread_mutex_unlock(&piLock); 
+    */
+
+    // New Code
+    pthreadReductionSum(localSum, &pi);
 
     return NULL;
 } 
