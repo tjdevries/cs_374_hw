@@ -29,9 +29,24 @@ import (
 
 // Parse the peer address variable
 var (
-	peerAddr = flag.String("peer", "", "peer host:port")
+	hostAddr = flag.String("peer", "", "peer host:port")
 	self     string
 )
+
+// Declare a Client struct, this will help us identify information about each client
+type Client struct {
+    ID int
+    Addr string
+    IsHost bool
+    HostFound bool
+}
+
+func (self *Client) SetDefaults() {
+    self.ID = -1
+    self.Addr = ""
+    self.IsHost = false
+    self.HostFound = false
+}
 
 // Declare our Message struct, which will get passed from each of the peers to the host.
 type Message struct {
@@ -44,16 +59,30 @@ func main() {
     // Parse the items sent in by command line
 	flag.Parse()
 
+    var self_client Client
+    self_client.SetDefaults()
+
+    // Debug print statement to show that we have initialize the client correctly
+    fmt.Println("Self ID is", self_client.ID, ", Addr is:", self_client.Addr, ", Hostfound is:", self_client.HostFound)
+
     // Get our IP address
 	l, err := util.Listen()
 	if err != nil {
 		log.Fatal(err)
 	}
-	self = l.Addr().String()
-	log.Println("Listening on", self)
+	self_client.Addr = l.Addr().String()
 
-    // Dial the address of the peer, however this is unnecessary because we are the host
-	go dial(*peerAddr)
+    fmt.Println("Self ID is", self_client.ID, ", Addr is:", self_client.Addr, ", Hostfound is:", self_client.HostFound)
+
+	// Dial the address of the host
+    go dial(*hostAddr)
+
+    // Make sure that it is the host
+    go checkIfHost()
+
+    // Send something to the host here
+
+    // Read something back from the host here
 	go readInput()
 
 	for {
@@ -136,6 +165,11 @@ func serve(c net.Conn) {
 		broadcast(m)
 		go dial(m.Addr)
 	}
+}
+
+// See if the connection we've made is to the host
+func checkIfHost() {
+    
 }
 
 // Read the information we got from our TCP connection
