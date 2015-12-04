@@ -1,6 +1,6 @@
-/* arraySum.c uses an array to sum the values in an input file,
- *  whose name is specified on the command-line.
- * Joel Adams, Fall 2005
+/* mpiArraySum.c is a function that takes in an array and returns the sum
+ *  It has parallel functionality added by MPI
+ * TJ DeVries, Fall 2015 
  * for CS 374 (HPC) at Calvin College.
  */
 
