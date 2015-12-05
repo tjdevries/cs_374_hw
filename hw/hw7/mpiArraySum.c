@@ -42,7 +42,9 @@ int main(int argc, char * argv[])
         // Read the array into memory
         readArray(argv[1], &masterArray, &howMany); 
 
-        printf("Master has read the array of size %d\n\n", howMany);
+        if (debug) {
+            printf("Master has read the array of size %d\n\n", howMany);
+        }
 
         // Wait until the array has been read before we do anything
         MPI_Bcast(&howMany, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -60,7 +62,7 @@ int main(int argc, char * argv[])
     if (id == 0) {
         printf("\nThe sum of the values in the input file '%s' is %g\n",
                 argv[1], finalSum);
-        printf("It took '%g' seconds to compute\n", t2 - t1);
+        printf("It took '%g' seconds to compute \n", t2 - t1);
     }
 
     MPI_Finalize();
