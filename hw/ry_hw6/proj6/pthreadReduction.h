@@ -33,8 +33,7 @@ void pthreadReductionSum(long double lSum, void * arg){
     int ID = Threads;
     Threads ++;
     pthread_mutex_unlock(&piLock);
-    printf("Thread %i here\n", ID);
-    pthreadBarrier(Threads);
+    printf("Thread %i here, value: %Lf\n", ID, lSum);
     if( ID == 0){
         printf("Number of Threads %lu\n", Threads);
         treeArray = (long double*) malloc( Threads * sizeof(long double));
@@ -44,20 +43,26 @@ void pthreadReductionSum(long double lSum, void * arg){
     pthreadBarrier(Threads); //so that array exists before we write to it
     treeArray[ID] = lSum; //tree array starts values at 1
     pthreadBarrier(Threads); //wait here for all values to be entered at base of tree
-    if((ID % 2) == 1){ pthread_exit(NULL); }
+    if((ID % 2) == 1){ pthread_exit(NULL); } //kill every other thread
     while( treeLevel <= maxLevel ){
-        printf("Thread %i here, treelevel %i\n", ID, treeLevel);
+        printf("Thread %i here, treelevel %i, array val: %Lf\n", ID, treeLevel, treeArray[ID]);
         if(ID % (int)(pow( 2, treeLevel )) == 0){
             printf("In if Thread %i here, treelevel %i\n", ID, treeLevel);
             treeArray[ID] = treeArray[ID] + treeArray[ID + (int)(pow( 2, treeLevel - 1 ))];
         }
         else{ pthread_exit(NULL); }//exit threads that have finished
-        if( ID == 0 ){ treeLevel ++; }  //this increases the depth of the tree as more threads are reduced
         pthreadBarrier(Threads / pow( 2, treeLevel ));
+        if( ID == 0 ){ treeLevel ++; }  //this increases the depth of the tree as more threads are reduced
+        pthreadBarrier(Threads / pow( 2, treeLevel-1 ));
     }
     if( (Threads % 2) == 1 ){ //if odd number of threads add the outlier 
-        treeArray[0] = treeArray[0] + treeArray[Threads]; }
-    if( ID == 0 ){ 
-        arg = &treeArray[0]; }
+        treeArray[0] = treeArray[0] + treeArray[Threads - 1]; 
+        pthread_exit(NULL);
+    }
+    if( ID == 0 ){
+        printf("at end in thread 0, results: %Lf\n", treeArray[0]);
+        arg = &treeArray[0]; 
+        pthread_exit(NULL);
+    }
 }
 

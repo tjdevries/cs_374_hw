@@ -44,6 +44,8 @@ void * computePI(void * arg)
 
     localSum *= width; 
 
+    printf("value: %Lf\n", localSum);
+
     pthreadReductionSum(localSum, &pi);
 
     return NULL;
