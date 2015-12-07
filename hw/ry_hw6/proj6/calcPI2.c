@@ -44,9 +44,9 @@ void * computePI(void * arg)
 
     localSum *= width; 
 
-    printf("value: %Lf\n", localSum);
+    //printf("value: %Lf\n", localSum); //for debugging
 
-    pthreadReductionSum(localSum, &pi);
+    pthreadReductionSum(localSum, &pi, numThreads, threadID);
 
     return NULL;
 }
@@ -100,7 +100,8 @@ int main(int argc, char **argv) {
     }
     stopTime = MPI_Wtime();
 
-    printf("Results: %32.30Lf \t%lf \n", pi, stopTime - startTime);
+    printf("%lf\n", stopTime - startTime); //for easier entry into spreadsheet
+    //printf("Results: %32.30Lf \t%lf \n", pi, stopTime - startTime);
     //printf("(actual pi value is 3.141592653589793238462643383279...)\n");
    
     pthread_mutex_destroy(&piLock);
