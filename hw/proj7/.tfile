@@ -1,0 +1,17 @@
+Host: 153.106.116.62 (wirth.cs.calvin.edu)	Ports: 22/open/tcp//ssh///
+Host: 153.106.116.68 (noyce-kilby.cs.calvin.edu)	Ports: 22/open/tcp//ssh///
+Host: 153.106.116.73 (wilkes.cs.calvin.edu)	Ports: 22/open/tcp//ssh///
+Host: 153.106.116.74 (taylor.cs.calvin.edu)	Ports: 22/open/tcp//ssh///
+Host: 153.106.116.75 (backus-naur.cs.calvin.edu)	Ports: 22/open/tcp//ssh///
+Host: 153.106.116.76 (dijkstra.cs.calvin.edu)	Ports: 22/open/tcp//ssh///
+Host: 153.106.116.77 (thompson.cs.calvin.edu)	Ports: 22/open/tcp//ssh///
+Host: 153.106.116.78 (hoare.cs.calvin.edu)	Ports: 22/open/tcp//ssh///
+Host: 153.106.116.79 (zuse.cs.calvin.edu)	Ports: 22/open/tcp//ssh///
+Host: 153.106.116.80 (babbage.cs.calvin.edu)	Ports: 22/open/tcp//ssh///
+Host: 153.106.116.83 (wall.cs.calvin.edu)	Ports: 22/open/tcp//ssh///
+Host: 153.106.116.85 (cray.cs.calvin.edu)	Ports: 22/open/tcp//ssh///
+Host: 153.106.116.87 (hopper.cs.calvin.edu)	Ports: 22/open/tcp//ssh///
+Host: 153.106.116.88 (kay.cs.calvin.edu)	Ports: 22/open/tcp//ssh///
+Host: 153.106.116.89 (goldberg.cs.calvin.edu)	Ports: 22/open/tcp//ssh///
+Host: 153.106.116.91 (leibniz.cs.calvin.edu)	Ports: 22/open/tcp//ssh///
+Host: 153.106.116.92 (sutherland.cs.calvin.edu)	Ports: 22/open/tcp//ssh///
