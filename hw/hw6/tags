@@ -1,0 +1,12 @@
+McalcPI2	calcPI2.c	/^int main(int argc, char **argv) {$/
+TARGET	Makefile	1
+barrierMutex	pthreadReduction.h	9
+computePI	calcPI2.c	/^void * computePI(void * arg)$/
+intervals	calcPI2.c	19
+numProc	all.sh	3
+numThreads	calcPI2.c	20
+pi	calcPI2.c	17
+piLock	calcPI2.c	18
+processCommandLine	calcPI2.c	/^void processCommandLine(int argc, char ** argv) {$/
+traps	all.sh	6
+traps	all.sh	9
